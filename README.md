@@ -4,13 +4,15 @@ A terminal-based shell assistant that connects your shell session to an LLM for 
 
 ## What it does
 
-Chatsh wraps your shell session and maintains a transcript of all terminal activity. Use the `help` command to query an LLM with context about what you're doing.
+Chatsh wraps your shell session and maintains a transcript of all terminal activity. Use the `help` command to query an LLM with context about what you're doing:
 
 ```
-$ help how do I find large files?
+$ ls /nonexistent
+ls: /nonexistent: No such file or directory
+$ help why did this command fail?
 ```
 
-The LLM receives your entire shell transcript and can provide context-aware assistance.
+The LLM sees your terminal transcript and provides context-aware assistance.
 
 ## Features
 
@@ -83,13 +85,7 @@ Start chatsh:
 chatsh
 ```
 
-Use your shell normally. When you need help:
-
-```bash
-$ ls /nonexistent
-ls: /nonexistent: No such file or directory
-$ help why did this command fail?
-```
+Use your shell normally. When you need help, use the `help` command with your question.
 
 ## How it works
 
