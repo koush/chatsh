@@ -14,8 +14,8 @@
     "start": "node --experimental-strip-types src/main.ts",
     "prepublishOnly": "npm version patch && npm run build"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Koushik Dutta",
+  "license": "MIT",
   "description": "",
   "devDependencies": {
     "@types/node": "^20.10.0",
