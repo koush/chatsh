@@ -205,7 +205,8 @@ async function main() {
   const address = server.address();
   const port = address && typeof address === 'object' ? address.port : 0;
 
-  const ptyProcess = spawn('zsh', [], {
+  const shell = process.env.SHELL || '/bin/zsh';
+  const ptyProcess = spawn(shell, ['-i'], {
     name: process.env.TERM || 'xterm',
     cols: process.stdout.columns || 80,
     rows: process.stdout.rows || 24,
@@ -217,7 +218,7 @@ async function main() {
   process.stdin.resume();
 
   process.stdin.on('data', (data: Buffer) => {
-    ptyProcess.write(data.toString());
+    ptyProcess.write(data as any);
   });
 
   ptyProcess.onData((data: string) => {
@@ -235,6 +236,9 @@ async function main() {
   });
 
   ptyProcess.write('help() { curl -s -X POST -d "$*" http://localhost:$LLMSH_PORT }\n');
+  if (shell.includes('zsh')) {
+    ptyProcess.write('bindkey "^R" history-incremental-search-backward\n');
+  }
 
   ptyProcess.onExit(({ exitCode }: { exitCode: number }) => {
     process.exit(exitCode);
