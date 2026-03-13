@@ -9,9 +9,13 @@ Chatsh wraps your shell session and maintains a transcript of all terminal activ
 ```
 $ ls /nonexistent
 ls: /nonexistent: No such file or directory
+
 $ help why did this command fail?
 
-The command failed because the directory /nonexistent does not exist. The ls command lists directory contents, but it cannot find a path that doesn't exist on your filesystem. Try ls without arguments to see your current directory, or use ls / to list the root directory.
+The command failed because the directory /nonexistent does not exist. 
+The ls command lists directory contents, but it cannot find a path 
+that doesn't exist on your filesystem. Try ls without arguments to 
+see your current directory, or use ls / to list the root directory.
 
 ```
 
