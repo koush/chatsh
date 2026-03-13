@@ -1,6 +1,6 @@
 {
   "name": "@koush/chatsh",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "type": "module",
   "main": "dist/main.js",
   "bin": {
