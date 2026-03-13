@@ -2,11 +2,10 @@
 
 A terminal-based shell assistant that connects your shell session to an LLM for context-aware help.
 
-## What it does
+## Quick Start
 
-Chatsh wraps your shell session and maintains a transcript of all terminal activity. Use the `help` command to query an LLM with context about what you're doing:
-
-```
+```bash
+$ npx @koush/chatsh
 $ ls /nonexistent
 ls: /nonexistent: No such file or directory
 
@@ -19,26 +18,7 @@ see your current directory, or use ls / to list the root directory.
 
 ```
 
-The LLM sees your terminal transcript and provides context-aware assistance.
-
-## Features
-
-- **Shell wrapper** - Wraps zsh/bash/fish in a PTY session
-- **LLM integration** - Multiple provider support (OpenAI, Anthropic, Google, OpenAI-compatible)
-- **Transcript tracking** - Maintains full terminal history
-- **Smart clear detection** - Resets transcript on terminal clear
-
-## Installation
-
-```bash
-npm install -g @koush/chatsh
-```
-
-Or run directly with:
-
-```bash
-npx @koush/chatsh
-```
+The LLM sees your entire terminal transcript and provides context-aware assistance.
 
 ## Configuration
 
@@ -84,15 +64,12 @@ Create `~/.chatsh/chatsh.jsonc`:
 }
 ```
 
-## Usage
+## Features
 
-Start chatsh:
-
-```bash
-chatsh
-```
-
-Use your shell normally. When you need help, use the `help` command with your question.
+- Wraps zsh/bash/fish in a PTY session
+- Multiple LLM providers (OpenAI, Anthropic, Google, OpenAI-compatible)
+- Maintains full terminal history
+- Resets transcript on terminal clear
 
 ## How it works
 
