@@ -5,7 +5,8 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "start": "node --experimental-strip-types src/main.ts"
+    "start": "node --experimental-strip-types src/main.ts",
+    "prepublishOnly": "npm version patch && npm run build"
   },
   "author": "",
   "license": "ISC",
