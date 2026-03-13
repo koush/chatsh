@@ -86,8 +86,9 @@ chatsh
 Use your shell normally. When you need help:
 
 ```bash
-$ help what does this error mean?
-$ help how do I grep recursively?
+$ ls /nonexistent
+ls: /nonexistent: No such file or directory
+$ help why did this command fail?
 ```
 
 ## How it works
