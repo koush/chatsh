@@ -4,12 +4,15 @@ import { once } from 'node:events';
 import { readFileSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as jsonc from 'jsonc-parser';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { streamText } from 'ai';
+
+const __filename = fileURLToPath(import.meta.url);
 
 type ProviderType = 'openai' | 'anthropic' | 'google' | 'openai-compatible';
 
@@ -211,7 +214,13 @@ async function main() {
     cols: process.stdout.columns || 80,
     rows: process.stdout.rows || 24,
     cwd: process.cwd(),
-    env: { ...process.env, CHATSH_PORT: String(port) } as { [key: string]: string }
+    env: {
+      ...process.env,
+      CHATSH_PORT: String(port),
+      CHATSH_NODE: process.execPath,
+      CHATSH_SCRIPT: __filename,
+      CHATSH_TS: __filename.endsWith('.ts') ? '--experimental-strip-types' : ''
+    } as { [key: string]: string }
   });
 
   process.stdin.setRawMode(true);
@@ -235,7 +244,7 @@ async function main() {
     process.stdout.write(data);
   });
 
-  ptyProcess.write('help() { curl -s -X POST -d "$*" http://localhost:$CHATSH_PORT }\n');
+  ptyProcess.write('help() { "$CHATSH_NODE" --no-warnings $CHATSH_TS "$CHATSH_SCRIPT" --help "$*"; }\n');
   if (shell.includes('zsh')) {
     ptyProcess.write('bindkey "^R" history-incremental-search-backward\n');
   }
@@ -253,4 +262,25 @@ async function main() {
   });
 }
 
-main();
+// Handle --help flag for shell help command
+if (process.argv[2] === '--help') {
+  const query = process.argv.slice(3).join(' ');
+  const port = process.env.CHATSH_PORT;
+  
+  if (!port) {
+    console.error('CHATSH_PORT not set');
+    process.exit(1);
+  }
+  
+  const response = await fetch(`http://localhost:${port}`, {
+    method: 'POST',
+    body: query
+  });
+  
+  for await (const chunk of response.body as AsyncIterable<Uint8Array>) {
+    process.stdout.write(chunk);
+  }
+  process.exit(0);
+} else {
+  main();
+}
