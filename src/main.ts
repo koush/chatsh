@@ -14,6 +14,46 @@ import { streamText } from 'ai';
 
 const __filename = fileURLToPath(import.meta.url);
 
+function createEscapeConverter() {
+  let buffer = '';
+  const patterns = ['\\033[', '\\x1b[', '\\e[', '\\u001b['];
+  
+  return {
+    convert(chunk: string): string {
+      buffer += chunk;
+      let result = '';
+      
+      for (const pattern of patterns) {
+        while (buffer.includes(pattern)) {
+          const idx = buffer.indexOf(pattern);
+          result += buffer.substring(0, idx);
+          result += '\x1b[';
+          buffer = buffer.substring(idx + pattern.length);
+        }
+      }
+      
+      // Keep potential partial matches in buffer
+      let safeIdx = buffer.length;
+      for (const pattern of patterns) {
+        const partialMatch = pattern.substring(0, pattern.length - 1);
+        if (buffer.endsWith(partialMatch)) {
+          safeIdx = Math.min(safeIdx, buffer.length - partialMatch.length);
+        }
+      }
+      
+      result += buffer.substring(0, safeIdx);
+      buffer = buffer.substring(safeIdx);
+      
+      return result;
+    },
+    flush(): string {
+      const remaining = buffer;
+      buffer = '';
+      return remaining;
+    }
+  };
+}
+
 type ProviderType = 'openai' | 'anthropic' | 'google' | 'openai-compatible';
 
 interface ChatshConfig {
@@ -182,15 +222,17 @@ async function main() {
         try {
           const result = streamText({
             model,
-            system: 'You are a helpful assistant running in a terminal session. You receive a shell transcript from the user and an associated user query, if any.\n\nCRITICAL: Do NOT use any markdown formatting whatsoever. This means:\n- No bullet points (- or *)\n- No backticks (`) for code\n- No headers (#)\n- No bold/italic markers (** or _)\n- No markdown links\n\nUse plain text only. If you need to emphasize something or format code examples, use ANSI escape codes instead (e.g., \\x1b[1m for bold, \\x1b[32m for green, \\x1b[0m to reset).\n\nHelp the user based on the transcript context.',
+            system: 'You are a helpful assistant running in a terminal session. You receive a shell transcript from the user and an associated user query, if any.\n\nCRITICAL: Do NOT use any markdown formatting whatsoever. This means:\n- No bullet points (- or *)\n- No backticks (`) for code\n- No headers (#)\n- No bold/italic markers (** or _)\n- No markdown links\n\nUse plain text only. When you need to emphasize something or format output, use ANSI escape codes. They WILL be converted and rendered properly in the terminal:\n\nWrite escape codes using \\033 notation:\n- \\033[1m for bold\n- \\033[32m for green\n- \\033[31m for red\n- \\033[33m for yellow\n- \\033[34m for blue\n- \\033[36m for cyan\n- \\033[35m for magenta\n- \\033[0m to reset formatting\n\nExample: To print "Hello" in green, write: \\033[32mHello\\033[0m\n\nThe escape codes will be automatically converted and rendered as colors in the terminal.\n\nHelp the user based on the transcript context.',
             prompt: `${transcript}\n\n${body}`
           });
 
           res.writeHead(200, { 'Content-Type': 'text/plain' });
           res.write('\n\n');
+          const converter = createEscapeConverter();
           for await (const chunk of result.textStream) {
-            res.write(chunk);
+            res.write(converter.convert(chunk));
           }
+          res.write(converter.flush());
           res.write('\n\n');
           res.end();
         } catch (error) {
