@@ -4,7 +4,7 @@
   "type": "module",
   "main": "dist/main.js",
   "bin": {
-    "chatsh": "./dist/cli.js"
+    "@koush/chatsh": "./dist/cli.js"
   },
   "files": [
     "dist"
