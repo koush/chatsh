@@ -13,7 +13,7 @@ import { streamText } from 'ai';
 
 type ProviderType = 'openai' | 'anthropic' | 'google' | 'openai-compatible';
 
-interface LlmshConfig {
+interface ChatshConfig {
   provider: ProviderType;
   model: string;
   options?: {
@@ -25,16 +25,16 @@ interface LlmshConfig {
   };
 }
 
-const CONFIG_PATH = join(homedir(), '.llmsh', 'llmsh.jsonc');
+const CONFIG_PATH = join(homedir(), '.chatsh', 'chatsh.jsonc');
 
-function loadConfig(): LlmshConfig | null {
+function loadConfig(): ChatshConfig | null {
   if (!existsSync(CONFIG_PATH)) {
     return null;
   }
 
   try {
     const content = readFileSync(CONFIG_PATH, 'utf-8');
-    const config = jsonc.parse(content) as LlmshConfig;
+    const config = jsonc.parse(content) as ChatshConfig;
     
     if (!config.provider || !config.model) {
       return null;
@@ -54,7 +54,7 @@ function loadConfig(): LlmshConfig | null {
 function showConfigHelp(): void {
   console.error(`Error: No valid config found at ${CONFIG_PATH}
 
-Create a config file at ~/.llmsh/llmsh.jsonc with one of the following formats:
+Create a config file at ~/.chatsh/chatsh.jsonc with one of the following formats:
 
 // OpenAI
 {
@@ -109,7 +109,7 @@ function getEnvApiKey(provider: string): string | undefined {
   }
 }
 
-function createProvider(config: LlmshConfig) {
+function createProvider(config: ChatshConfig) {
   const { provider, model, options = {} } = config;
   const apiKey = options.apiKey || getEnvApiKey(provider);
   const baseURL = options.baseURL;
@@ -211,7 +211,7 @@ async function main() {
     cols: process.stdout.columns || 80,
     rows: process.stdout.rows || 24,
     cwd: process.cwd(),
-    env: { ...process.env, LLMSH_PORT: String(port) } as { [key: string]: string }
+    env: { ...process.env, CHATSH_PORT: String(port) } as { [key: string]: string }
   });
 
   process.stdin.setRawMode(true);
@@ -235,7 +235,7 @@ async function main() {
     process.stdout.write(data);
   });
 
-  ptyProcess.write('help() { curl -s -X POST -d "$*" http://localhost:$LLMSH_PORT }\n');
+  ptyProcess.write('help() { curl -s -X POST -d "$*" http://localhost:$CHATSH_PORT }\n');
   if (shell.includes('zsh')) {
     ptyProcess.write('bindkey "^R" history-incremental-search-backward\n');
   }
