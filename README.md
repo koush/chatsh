@@ -9,7 +9,7 @@ $ npx @koush/chatsh
 $ ls /nonexistent
 ls: /nonexistent: No such file or directory
 
-$ help why did this command fail?
+$ help why did this command fail
 
 The command failed because the directory /nonexistent does not exist. 
 The ls command lists directory contents, but it cannot find a path 
