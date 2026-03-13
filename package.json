@@ -3,6 +3,12 @@
   "version": "1.0.4",
   "type": "module",
   "main": "dist/main.js",
+  "bin": {
+    "chatsh": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node --experimental-strip-types src/main.ts",
