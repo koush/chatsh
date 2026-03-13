@@ -1,5 +1,5 @@
 {
-  "name": "chatsh",
+  "name": "@koush/chatsh",
   "version": "1.0.3",
   "type": "module",
   "main": "dist/main.js",
