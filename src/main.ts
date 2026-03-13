@@ -14,42 +14,56 @@ import { streamText } from 'ai';
 
 const __filename = fileURLToPath(import.meta.url);
 
+function convertEscapeSequences(text: string): string {
+  return text
+    .replaceAll('\\033[', '\x1b[')
+    .replaceAll('\\x1b[', '\x1b[')
+    .replaceAll('\\e[', '\x1b[')
+    .replaceAll('\\u001b[', '\x1b[');
+}
+
 function createEscapeConverter() {
   let buffer = '';
-  const patterns = ['\\033[', '\\x1b[', '\\e[', '\\u001b['];
+  const prefixes = ['\\033', '\\x1b', '\\u001b', '\\e'];
   
   return {
     convert(chunk: string): string {
       buffer += chunk;
-      let result = '';
       
-      for (const pattern of patterns) {
-        while (buffer.includes(pattern)) {
-          const idx = buffer.indexOf(pattern);
-          result += buffer.substring(0, idx);
-          result += '\x1b[';
-          buffer = buffer.substring(idx + pattern.length);
+      // Find the longest safe prefix to output
+      let safeLength = buffer.length;
+      
+      // Check if buffer ends with a partial escape sequence
+      for (const prefix of prefixes) {
+        for (let i = 1; i < prefix.length; i++) {
+          if (buffer.endsWith(prefix.substring(0, i))) {
+            safeLength = Math.min(safeLength, buffer.length - i);
+          }
         }
       }
       
-      // Keep potential partial matches in buffer
-      let safeIdx = buffer.length;
-      for (const pattern of patterns) {
-        const partialMatch = pattern.substring(0, pattern.length - 1);
-        if (buffer.endsWith(partialMatch)) {
-          safeIdx = Math.min(safeIdx, buffer.length - partialMatch.length);
+      // Also check for escape sequences missing the bracket
+      for (const prefix of prefixes) {
+        const fullPattern = prefix + '[';
+        const incompleteIdx = buffer.indexOf(prefix);
+        if (incompleteIdx !== -1 && !buffer.substring(incompleteIdx).startsWith(fullPattern)) {
+          // Found prefix but not full pattern yet
+          const afterPrefix = buffer.substring(incompleteIdx + prefix.length);
+          if (!afterPrefix.startsWith('[')) {
+            safeLength = Math.min(safeLength, incompleteIdx);
+          }
         }
       }
       
-      result += buffer.substring(0, safeIdx);
-      buffer = buffer.substring(safeIdx);
+      const toOutput = buffer.substring(0, safeLength);
+      buffer = buffer.substring(safeLength);
       
-      return result;
+      return convertEscapeSequences(toOutput);
     },
     flush(): string {
-      const remaining = buffer;
+      const result = convertEscapeSequences(buffer);
       buffer = '';
-      return remaining;
+      return result;
     }
   };
 }
